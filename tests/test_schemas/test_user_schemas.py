@@ -132,3 +132,15 @@ def test_user_base_first_name_invalid(first_name, user_base_data):
     user_base_data["first_name"] = first_name
     with pytest.raises(ValidationError):
         UserBase(**user_base_data)
+
+@pytest.mark.parametrize("last_name", ["Joe","Janey","JohnLee"*3])
+def test_user_base_last_name_valid(last_name, user_base_data):
+    user_base_data["last_name"] = last_name
+    user = UserBase(**user_base_data)
+    assert user.last_name == last_name
+
+@pytest.mark.parametrize("last_name", ["","JohnLee"*40,"Oh"])
+def test_user_base_last_name_invalid(last_name, user_base_data):
+    user_base_data["last_name"] = last_name
+    with pytest.raises(ValidationError):
+        UserBase(**user_base_data)
