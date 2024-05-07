@@ -120,3 +120,15 @@ def test_user_base_email_invalid(email, user_base_data):
     user_base_data["email"] = email
     with pytest.raises(ValidationError):
         UserBase(**user_base_data)
+
+@pytest.mark.parametrize("first_name", ["Name","John","Patrick","Olivier"])
+def test_user_base_nickname_valid(first_name, user_base_data):
+    user_base_data["first_name"] = first_name
+    user = UserBase(**user_base_data)
+    assert user.first_name == first_name
+
+@pytest.mark.parametrize("first_name", ["","johnLeedoe"*26])
+def test_user_base_nickname_invalid(first_name, user_base_data):
+    user_base_data["first_name"] = first_name
+    with pytest.raises(ValidationError):
+        UserBase(**user_base_data)
