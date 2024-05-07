@@ -274,3 +274,15 @@ async def test_search_users_by_reg_date_range_min(db_session, email_service):
     reg_date_min = users[0].created_at
     search_results = await UserService.search(db_session, reg_date_min=reg_date_min)
     assert all(reg_date_min <= user.created_at for user in search_results)
+
+# Test searching users with no filters with no users
+async def test_search_users_no_matches(db_session, email_service):
+    user_data = {
+        "nickname": generate_nickname(),
+        "email": "valid_user@example.com",
+        "password": "ValidPassword123!",
+        "role": UserRole.ADMIN.name
+    }
+    user = await UserService.create(db_session, user_data, email_service)
+    users = await UserService.list_users(db_session, skip=0, limit=10)
+    await UserService.search(db_session, email="InvalidEmailSearch") == None
