@@ -65,13 +65,12 @@ class UserService:
             new_user.nickname = new_nickname
             logger.info(f"User Role: {new_user.role}")
             user_count = await cls.count(session)
-            new_user.role = UserRole.ADMIN if user_count == 0 else UserRole.ANONYMOUS            
-            if new_user.role == UserRole.ADMIN:
-                new_user.email_verified = True
-
-            else:
-                new_user.verification_token = generate_verification_token()
-                await email_service.send_verification_email(new_user)
+            new_user.role = UserRole.ADMIN if user_count == 0 else UserRole.AUTHENTICATED            
+            #if new_user.role == UserRole.ADMIN:
+            #    new_user.email_verified = True
+            #new_user.verification_token = generate_verification_token()
+            #new_user.email_verified = True
+            # await email_service.send_verification_email(new_user)
 
             session.add(new_user)
             await session.commit()
@@ -199,3 +198,31 @@ class UserService:
             await session.commit()
             return True
         return False
+
+
+    @classmethod
+    async def search(cls, session: AsyncSession, skip: int = 0, limit: int = 10, username=None, email=None, first_name=None, last_name=None, role=None, account_is_active=None, reg_date_min=None, reg_date_max=None) -> List[User]:
+        query = select(User)
+        if username is not None:
+            query = query.filter(User.nickname.contains(username))
+        if email is not None:
+            query = query.filter(User.email.contains(email))
+        if first_name is not None:
+            query = query.filter(User.first_name.contains(first_name))
+        if last_name is not None:
+            query = query.filter(User.last_name.contains(last_name))
+        if role is not None:
+            query = query.filter(User.role.contains(role))
+        if account_is_active is not None:
+            query = query.filter(User.is_locked != account_is_active)
+        if reg_date_min:
+            query = query.filter(User.created_at >= reg_date_min)
+        if reg_date_max:
+            query = query.filter(User.created_at <= reg_date_max)
+    
+        query = query.offset(skip).limit(limit)
+        result = await cls._execute_query(session, query)
+
+        users = result.scalars().all() if result else []
+
+        return users

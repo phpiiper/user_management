@@ -5,6 +5,7 @@ from app.dependencies import get_settings
 from app.models.user_model import User, UserRole
 from app.services.user_service import UserService
 from app.utils.nickname_gen import generate_nickname
+from fastapi import HTTPException
 
 pytestmark = pytest.mark.asyncio
 
@@ -161,3 +162,17 @@ async def test_unlock_user_account(db_session, locked_user):
     assert unlocked, "The account should be unlocked"
     refreshed_user = await UserService.get_by_id(db_session, locked_user.id)
     assert not refreshed_user.is_locked, "The user should no longer be locked"
+
+# NEW: Test FILTERS
+# Test searching users with no filters
+async def test_search_users_no_filters(db_session, email_service):
+    user_data = {
+        "nickname": generate_nickname(),
+        "email": "valid_user@example.com",
+        "password": "ValidPassword123!",
+        "role": UserRole.ADMIN.name
+    }
+    user = await UserService.create(db_session, user_data, email_service)
+    users = await UserService.list_users(db_session, skip=0, limit=10)
+    search_results = await UserService.search(db_session)
+    assert len(search_results) == len(users)
