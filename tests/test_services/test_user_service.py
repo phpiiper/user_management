@@ -176,3 +176,17 @@ async def test_search_users_no_filters(db_session, email_service):
     users = await UserService.list_users(db_session, skip=0, limit=10)
     search_results = await UserService.search(db_session)
     assert len(search_results) == len(users)
+
+# Test searching users by username
+async def test_search_users_by_username(db_session, email_service):
+    user_data = {
+        "nickname": generate_nickname(),
+        "email": "valid_user@example.com",
+        "password": "ValidPassword123!",
+        "role": UserRole.ADMIN.name
+    }
+    user = await UserService.create(db_session, user_data, email_service)
+    users = await UserService.list_users(db_session, skip=0, limit=10)
+    username = users[0].nickname
+    search_results = await UserService.search(db_session, username=username)
+    assert all(user.nickname == username for user in search_results)
