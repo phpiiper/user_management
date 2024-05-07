@@ -260,3 +260,17 @@ async def test_search_users_by_account_status(db_session, email_service):
     account_is_active = users[0].is_locked
     search_results = await UserService.search(db_session, account_is_active=account_is_active)
     assert all(user.is_locked != account_is_active for user in search_results)
+
+# Test searching users by registration date range min
+async def test_search_users_by_reg_date_range_min(db_session, email_service):
+    user_data = {
+        "nickname": generate_nickname(),
+        "email": "valid_user@example.com",
+        "password": "ValidPassword123!",
+        "role": UserRole.ADMIN.name
+    }
+    user = await UserService.create(db_session, user_data, email_service)
+    users = await UserService.list_users(db_session, skip=0, limit=10)
+    reg_date_min = users[0].created_at
+    search_results = await UserService.search(db_session, reg_date_min=reg_date_min)
+    assert all(reg_date_min <= user.created_at for user in search_results)
