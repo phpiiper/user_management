@@ -18,14 +18,14 @@ def validate_url(url: Optional[str]) -> Optional[str]:
     return url
 
 class UserBase(BaseModel):
-    email: EmailStr = Field(..., example="john.doe@example.com")
-    nickname: Optional[str] = Field(None, min_length=3, pattern=r'^[\w-]+$', example=generate_nickname())
-    first_name: Optional[str] = Field(None, example="John")
-    last_name: Optional[str] = Field(None, example="Doe")
-    bio: Optional[str] = Field(None, example="Experienced software developer specializing in web applications.")
-    profile_picture_url: Optional[str] = Field(None, example="https://example.com/profiles/john.jpg")
-    linkedin_profile_url: Optional[str] =Field(None, example="https://linkedin.com/in/johndoe")
-    github_profile_url: Optional[str] = Field(None, example="https://github.com/johndoe")
+    email: EmailStr = Field(..., example="john.doe@example.com", max_length=255)
+    nickname: Optional[str] = Field(None, min_length=3, pattern=r'^[\w-]+$', example=generate_nickname(), max_length=50)
+    first_name: Optional[str] = Field(None, min_length=3, example="John", max_length=100)
+    last_name: Optional[str] = Field(None, min_length=3, example="Doe", max_length=100)
+    bio: Optional[str] = Field(None, min_length=3, example="Experienced software developer specializing in web applications.", max_length=500)
+    profile_picture_url: Optional[str] = Field(None, min_length=3, example="https://example.com/profiles/john.jpg", max_length=255)
+    linkedin_profile_url: Optional[str] = Field(None, min_length=3, example="https://linkedin.com/in/johndoe", max_length=255)
+    github_profile_url: Optional[str] = Field(None, min_length=3, example="https://github.com/johndoe", max_length=255)
     role: UserRole
 
     _validate_urls = validator('profile_picture_url', 'linkedin_profile_url', 'github_profile_url', pre=True, allow_reuse=True)(validate_url)
@@ -34,18 +34,18 @@ class UserBase(BaseModel):
         from_attributes = True
 
 class UserCreate(UserBase):
-    email: EmailStr = Field(..., example="john.doe@example.com")
+    email: EmailStr = Field(..., example="john.doe@example.com", max_length=50)
     password: str = Field(..., example="Secure*1234")
 
 class UserUpdate(UserBase):
-    email: Optional[EmailStr] = Field(None, example="john.doe@example.com")
-    nickname: Optional[str] = Field(None, min_length=3, pattern=r'^[\w-]+$', example="john_doe123")
-    first_name: Optional[str] = Field(None, example="John")
-    last_name: Optional[str] = Field(None, example="Doe")
-    bio: Optional[str] = Field(None, example="Experienced software developer specializing in web applications.")
-    profile_picture_url: Optional[str] = Field(None, example="https://example.com/profiles/john.jpg")
-    linkedin_profile_url: Optional[str] =Field(None, example="https://linkedin.com/in/johndoe")
-    github_profile_url: Optional[str] = Field(None, example="https://github.com/johndoe")
+    email: Optional[EmailStr] = Field(None, example="john.doe@example.com", max_length=255)
+    nickname: Optional[str] = Field(None, min_length=3, pattern=r'^[\w-]+$', example="john_doe123", max_length=50)
+    first_name: Optional[str] = Field(None, example="John", max_length=100)
+    last_name: Optional[str] = Field(None, example="Doe", max_length=100)
+    bio: Optional[str] = Field(None, example="Experienced software developer specializing in web applications.", max_length=500)
+    profile_picture_url: Optional[str] = Field(None, example="https://example.com/profiles/john.jpg", max_length=255)
+    linkedin_profile_url: Optional[str] =Field(None, example="https://linkedin.com/in/johndoe", max_length=255)
+    github_profile_url: Optional[str] = Field(None, example="https://github.com/johndoe", max_length=255)
     role: Optional[str] = Field(None, example="AUTHENTICATED")
 
     @root_validator(pre=True)
