@@ -232,3 +232,17 @@ async def test_search_users_by_last_name(db_session, email_service):
     last_name = users[0].last_name
     search_results = await UserService.search(db_session, last_name=last_name)
     assert all(user.last_name == last_name for user in search_results)
+
+# Test searching users by role
+async def test_search_users_by_role(db_session, email_service):
+    user_data = {
+        "nickname": generate_nickname(),
+        "email": "valid_user@example.com",
+        "password": "ValidPassword123!",
+        "role": UserRole.ADMIN.name
+    }
+    user = await UserService.create(db_session, user_data, email_service)
+    users = await UserService.list_users(db_session, skip=0, limit=10)
+    role = users[0].role
+    search_results = await UserService.search(db_session, role=role)
+    assert all(user.role == role for user in search_results)
