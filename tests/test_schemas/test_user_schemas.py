@@ -121,14 +121,26 @@ def test_user_base_email_invalid(email, user_base_data):
     with pytest.raises(ValidationError):
         UserBase(**user_base_data)
 
-@pytest.mark.parametrize("first_name", ["Name","John","Patrick","Olivier"])
-def test_user_base_nickname_valid(first_name, user_base_data):
+@pytest.mark.parametrize("first_name", ["Joe","Janey","JohnLee"*3])
+def test_user_base_first_name_valid(first_name, user_base_data):
     user_base_data["first_name"] = first_name
     user = UserBase(**user_base_data)
     assert user.first_name == first_name
 
-@pytest.mark.parametrize("first_name", ["","johnLeedoe"*26])
-def test_user_base_nickname_invalid(first_name, user_base_data):
+@pytest.mark.parametrize("first_name", ["","JohnLee"*40,"Oh"])
+def test_user_base_first_name_invalid(first_name, user_base_data):
     user_base_data["first_name"] = first_name
+    with pytest.raises(ValidationError):
+        UserBase(**user_base_data)
+
+@pytest.mark.parametrize("last_name", ["Joe","Janey","JohnLee"*3])
+def test_user_base_last_name_valid(last_name, user_base_data):
+    user_base_data["last_name"] = last_name
+    user = UserBase(**user_base_data)
+    assert user.last_name == last_name
+
+@pytest.mark.parametrize("last_name", ["","JohnLee"*40,"Oh"])
+def test_user_base_last_name_invalid(last_name, user_base_data):
+    user_base_data["last_name"] = last_name
     with pytest.raises(ValidationError):
         UserBase(**user_base_data)
