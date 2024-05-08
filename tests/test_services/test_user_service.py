@@ -5,6 +5,7 @@ from app.dependencies import get_settings
 from app.models.user_model import User, UserRole
 from app.services.user_service import UserService
 from app.utils.nickname_gen import generate_nickname
+from fastapi import HTTPException
 
 pytestmark = pytest.mark.asyncio
 
@@ -161,3 +162,127 @@ async def test_unlock_user_account(db_session, locked_user):
     assert unlocked, "The account should be unlocked"
     refreshed_user = await UserService.get_by_id(db_session, locked_user.id)
     assert not refreshed_user.is_locked, "The user should no longer be locked"
+
+# NEW: Test FILTERS
+# Test searching users with no filters
+async def test_search_users_no_filters(db_session, email_service):
+    user_data = {
+        "nickname": generate_nickname(),
+        "email": "valid_user@example.com",
+        "password": "ValidPassword123!",
+        "role": UserRole.ADMIN.name
+    }
+    user = await UserService.create(db_session, user_data, email_service)
+    users = await UserService.list_users(db_session, skip=0, limit=10)
+    search_results = await UserService.search(db_session)
+    assert len(search_results) == len(users)
+
+# Test searching users by username
+async def test_search_users_by_username(db_session, email_service):
+    user_data = {
+        "nickname": generate_nickname(),
+        "email": "valid_user@example.com",
+        "password": "ValidPassword123!",
+        "role": UserRole.ADMIN.name
+    }
+    user = await UserService.create(db_session, user_data, email_service)
+    users = await UserService.list_users(db_session, skip=0, limit=10)
+    username = users[0].nickname
+    search_results = await UserService.search(db_session, username=username)
+    assert all(user.nickname == username for user in search_results)
+
+# Test searching users by email
+async def test_search_users_by_email(db_session, email_service):
+    user_data = {
+        "nickname": generate_nickname(),
+        "email": "valid_user@example.com",
+        "password": "ValidPassword123!",
+        "role": UserRole.ADMIN.name
+    }
+    user = await UserService.create(db_session, user_data, email_service)
+    users = await UserService.list_users(db_session, skip=0, limit=10)
+    email = users[0].email
+    search_results = await UserService.search(db_session, email=email)
+    assert all(user.email == email for user in search_results)
+
+# Test searching users by first name
+async def test_search_users_by_first_name(db_session, email_service):
+    user_data = {
+        "nickname": generate_nickname(),
+        "email": "valid_user@example.com",
+        "password": "ValidPassword123!",
+        "role": UserRole.ADMIN.name
+    }
+    user = await UserService.create(db_session, user_data, email_service)
+    users = await UserService.list_users(db_session, skip=0, limit=10)
+    first_name = users[0].first_name
+    search_results = await UserService.search(db_session, first_name=first_name)
+    assert all(user.first_name == first_name for user in search_results)
+
+# Test searching users by last name
+async def test_search_users_by_last_name(db_session, email_service):
+    user_data = {
+        "nickname": generate_nickname(),
+        "email": "valid_user@example.com",
+        "password": "ValidPassword123!",
+        "role": UserRole.ADMIN.name
+    }
+    user = await UserService.create(db_session, user_data, email_service)
+    users = await UserService.list_users(db_session, skip=0, limit=10)
+    last_name = users[0].last_name
+    search_results = await UserService.search(db_session, last_name=last_name)
+    assert all(user.last_name == last_name for user in search_results)
+
+# Test searching users by role
+async def test_search_users_by_role(db_session, email_service):
+    user_data = {
+        "nickname": generate_nickname(),
+        "email": "valid_user@example.com",
+        "password": "ValidPassword123!",
+        "role": UserRole.ADMIN.name
+    }
+    user = await UserService.create(db_session, user_data, email_service)
+    users = await UserService.list_users(db_session, skip=0, limit=10)
+    role = users[0].role
+    search_results = await UserService.search(db_session, role=role)
+    assert all(user.role == role for user in search_results)
+
+# Test searching users by account status
+async def test_search_users_by_account_status(db_session, email_service):
+    user_data = {
+        "nickname": generate_nickname(),
+        "email": "valid_user@example.com",
+        "password": "ValidPassword123!",
+        "role": UserRole.ADMIN.name
+    }
+    user = await UserService.create(db_session, user_data, email_service)
+    users = await UserService.list_users(db_session, skip=0, limit=10)
+    account_is_active = users[0].is_locked
+    search_results = await UserService.search(db_session, account_is_active=account_is_active)
+    assert all(user.is_locked != account_is_active for user in search_results)
+
+# Test searching users by registration date range min
+async def test_search_users_by_reg_date_range_min(db_session, email_service):
+    user_data = {
+        "nickname": generate_nickname(),
+        "email": "valid_user@example.com",
+        "password": "ValidPassword123!",
+        "role": UserRole.ADMIN.name
+    }
+    user = await UserService.create(db_session, user_data, email_service)
+    users = await UserService.list_users(db_session, skip=0, limit=10)
+    reg_date_min = users[0].created_at
+    search_results = await UserService.search(db_session, reg_date_min=reg_date_min)
+    assert all(reg_date_min <= user.created_at for user in search_results)
+
+# Test searching users with no filters with no users
+async def test_search_users_no_matches(db_session, email_service):
+    user_data = {
+        "nickname": generate_nickname(),
+        "email": "valid_user@example.com",
+        "password": "ValidPassword123!",
+        "role": UserRole.ADMIN.name
+    }
+    user = await UserService.create(db_session, user_data, email_service)
+    users = await UserService.list_users(db_session, skip=0, limit=10)
+    await UserService.search(db_session, email="InvalidEmailSearch") == None
